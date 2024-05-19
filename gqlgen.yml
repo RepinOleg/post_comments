@@ -1,0 +1,21 @@
+schema:
+  - schema.graphql
+
+exec:
+  filename: pkg/generated/generated.go
+
+model:
+  filename: models_gen.go
+resolver:
+  filename: pkg/resolver/resolver.go
+  type: Resolver
+
+models:
+  ID:
+    model: post-comments/pkg/model.ID
+  Timestamp:
+    model: post-comments/pkg/model.Timestamp
+  Comment:
+    model: post-comments/pkg/model.Comment
+  Post:
+    model: post-comments/pkg/model.Post
