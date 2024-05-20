@@ -10,20 +10,13 @@ import (
 	"github.com/spf13/viper"
 	"log"
 	"net/http"
-	"os"
 	"post-comments/pkg/database"
 	"post-comments/pkg/generated"
 	"post-comments/pkg/resolver"
 	"post-comments/pkg/storage"
 )
 
-const defaultPort = "8080"
-
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = defaultPort
-	}
 
 	// Define flag for storage type
 	storageType := flag.String("storage", "in_memory", "type of storage to use (postgres or in_memory)")
@@ -63,8 +56,8 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL Playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Printf("connect to http://localhost:%s/ for GraphQL playground", viper.GetString("port"))
+	log.Fatal(http.ListenAndServe(viper.GetString("port"), nil))
 }
 
 func initConfig() error {

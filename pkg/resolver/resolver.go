@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"post-comments"
+	"unicode/utf8"
 
 	"post-comments/pkg/generated"
 	"post-comments/pkg/model"
@@ -31,7 +32,13 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input post_comments.N
 	return post, nil
 }
 
+const CommentMaxLen = 2000
+
 func (r *mutationResolver) CreateComment(ctx context.Context, input post_comments.NewComment) (*model.Comment, error) {
+	if utf8.RuneCountInString(input.Body) > CommentMaxLen {
+		return nil, errors.New("body too long")
+	}
+
 	comment := &model.Comment{
 		PostID:   input.PostID,
 		ParentID: input.ParentID,
