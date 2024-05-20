@@ -1,21 +1,25 @@
 version: "3.8"
 services:
-  db:
+  postgres:
     image: postgres:latest
+    container_name: my-postgres
     environment:
-      POSTGRES_DB: post_comment_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "12345"
+    ports:
+      - "5432:5432"
     volumes:
-      - db_data:/var/lib/postgresql/data
+      - ./assets/postgres/init.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./pg_data:/var/lib/postgresql/data
   app:
     build: .
+    container_name: post-comments
     ports:
       - "8080:8080"
     depends_on:
-      - db
+      - postgres
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/post_comment_db?sslmode=disable
+      DB_PASSWORD: "12345"
 
-volumes:
-  db_data:
+
