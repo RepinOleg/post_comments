@@ -105,21 +105,44 @@ func (s *PostgresStorage) CreateComment(ctx context.Context, comment *model.Comm
 	err := s.db.QueryRowContext(ctx, "INSERT INTO comments (post_id, parent_id, body, created_at, updated_at) VALUES ($1, $2, $3, $4, $5) RETURNING id", comment.PostID, comment.ParentID, comment.Body, comment.CreatedAt, comment.UpdatedAt).Scan(&comment.ID)
 	return err
 }
-
 func (s *PostgresStorage) DisableComments(ctx context.Context, postID int) (*model.Post, error) {
 	post := &model.Post{}
-	err := s.db.GetContext(ctx, post, "UPDATE posts SET comments_disabled = true WHERE id=$1 RETURNING id, title, body, comments_disabled AS commentsDisabled,  created_at AS createdAt, updated_at AS updatedAt", postID)
+	query := `
+  UPDATE posts 
+  SET comments_disabled = true, updated_at = now() 
+  WHERE id = $1 
+  RETURNING id, title, body, comments_disabled AS commentsDisabled, created_at AS createdAt, updated_at AS updatedAt`
+	err := s.db.QueryRowContext(ctx, query, postID).Scan(
+		&post.ID,
+		&post.Title,
+		&post.Body,
+		&post.CommentsDisabled,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
 	if err != nil {
-		return nil, errors.New("post not found")
+		return nil, err
 	}
 	return post, nil
 }
 
 func (s *PostgresStorage) UnableComments(ctx context.Context, postID int) (*model.Post, error) {
 	post := &model.Post{}
-	err := s.db.GetContext(ctx, post, "UPDATE posts SET comments_disabled = false WHERE id=$1 RETURNING *", postID)
+	query := `
+  UPDATE posts 
+  SET comments_disabled = false, updated_at = now() 
+  WHERE id = $1 
+  RETURNING id, title, body, comments_disabled AS commentsDisabled, created_at AS createdAt, updated_at AS updatedAt`
+	err := s.db.QueryRowContext(ctx, query, postID).Scan(
+		&post.ID,
+		&post.Title,
+		&post.Body,
+		&post.CommentsDisabled,
+		&post.CreatedAt,
+		&post.UpdatedAt,
+	)
 	if err != nil {
-		return nil, errors.New("post not found")
+		return nil, err
 	}
 	return post, nil
 }
