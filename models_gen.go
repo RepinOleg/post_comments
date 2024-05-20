@@ -2,9 +2,6 @@
 
 package post_comments
 
-type Mutation struct {
-}
-
 type NewComment struct {
 	PostID   int    `json:"postId"`
 	ParentID *int   `json:"parentId,omitempty"`
@@ -14,10 +11,4 @@ type NewComment struct {
 type NewPost struct {
 	Title string `json:"title"`
 	Body  string `json:"body"`
-}
-
-type Query struct {
-}
-
-type Subscription struct {
 }
