@@ -74,8 +74,8 @@ func (r *mutationResolver) DisableComments(ctx context.Context, postID int) (*mo
 	return post, nil
 }
 
-func (r *mutationResolver) UnableComments(ctx context.Context, postID int) (*model.Post, error) {
-	post, err := r.Storage.UnableComments(ctx, postID)
+func (r *mutationResolver) EnableComments(ctx context.Context, postID int) (*model.Post, error) {
+	post, err := r.Storage.EnableComments(ctx, postID)
 	if err != nil {
 		return nil, err
 	}

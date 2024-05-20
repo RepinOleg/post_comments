@@ -77,7 +77,7 @@ func (s *InMemoryStorage) DisableComments(ctx context.Context, postID int) (*mod
 	return nil, errors.New("post not found")
 }
 
-func (s *InMemoryStorage) UnableComments(ctx context.Context, postID int) (*model.Post, error) {
+func (s *InMemoryStorage) EnableComments(ctx context.Context, postID int) (*model.Post, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, post := range s.posts {

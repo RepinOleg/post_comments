@@ -126,7 +126,7 @@ func (s *PostgresStorage) DisableComments(ctx context.Context, postID int) (*mod
 	return post, nil
 }
 
-func (s *PostgresStorage) UnableComments(ctx context.Context, postID int) (*model.Post, error) {
+func (s *PostgresStorage) EnableComments(ctx context.Context, postID int) (*model.Post, error) {
 	post := &model.Post{}
 	query := `
   UPDATE posts 

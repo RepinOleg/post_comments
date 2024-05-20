@@ -63,7 +63,7 @@ type ComplexityRoot struct {
 		CreateComment   func(childComplexity int, input post_comments.NewComment) int
 		CreatePost      func(childComplexity int, input post_comments.NewPost) int
 		DisableComments func(childComplexity int, postID int) int
-		UnableComments  func(childComplexity int, postID int) int
+		EnableComments  func(childComplexity int, postID int) int
 	}
 
 	Post struct {
@@ -90,7 +90,7 @@ type MutationResolver interface {
 	CreatePost(ctx context.Context, input post_comments.NewPost) (*model.Post, error)
 	CreateComment(ctx context.Context, input post_comments.NewComment) (*model.Comment, error)
 	DisableComments(ctx context.Context, postID int) (*model.Post, error)
-	UnableComments(ctx context.Context, postID int) (*model.Post, error)
+	EnableComments(ctx context.Context, postID int) (*model.Post, error)
 }
 type QueryResolver interface {
 	Posts(ctx context.Context) ([]*model.Post, error)
@@ -197,17 +197,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DisableComments(childComplexity, args["postId"].(int)), true
 
-	case "Mutation.unableComments":
-		if e.complexity.Mutation.UnableComments == nil {
+	case "Mutation.enableComments":
+		if e.complexity.Mutation.EnableComments == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_unableComments_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_enableComments_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UnableComments(childComplexity, args["postId"].(int)), true
+		return e.complexity.Mutation.EnableComments(childComplexity, args["postId"].(int)), true
 
 	case "Post.body":
 		if e.complexity.Post.Body == nil {
@@ -452,7 +452,7 @@ type Mutation {
     createPost(input: NewPost!): Post!
     createComment(input: NewComment!): Comment!
     disableComments(postId: ID!): Post!
-    unableComments(postId: ID!): Post!
+    enableComments(postId: ID!): Post!
 }
 
 type Subscription {
@@ -512,7 +512,7 @@ func (ec *executionContext) field_Mutation_disableComments_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_unableComments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_enableComments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 int
@@ -1082,8 +1082,8 @@ func (ec *executionContext) fieldContext_Mutation_disableComments(ctx context.Co
 	return fc, nil
 }
 
-func (ec *executionContext) _Mutation_unableComments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_Mutation_unableComments(ctx, field)
+func (ec *executionContext) _Mutation_enableComments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_enableComments(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1096,7 +1096,7 @@ func (ec *executionContext) _Mutation_unableComments(ctx context.Context, field 
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UnableComments(rctx, fc.Args["postId"].(int))
+		return ec.resolvers.Mutation().EnableComments(rctx, fc.Args["postId"].(int))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1113,7 +1113,7 @@ func (ec *executionContext) _Mutation_unableComments(ctx context.Context, field 
 	return ec.marshalNPost2ᚖpostᚑcommentsᚋpkgᚋmodelᚐPost(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_Mutation_unableComments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Mutation_enableComments(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Mutation",
 		Field:      field,
@@ -1146,7 +1146,7 @@ func (ec *executionContext) fieldContext_Mutation_unableComments(ctx context.Con
 		}
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
-	if fc.Args, err = ec.field_Mutation_unableComments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+	if fc.Args, err = ec.field_Mutation_enableComments_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3772,9 +3772,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
-		case "unableComments":
+		case "enableComments":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._Mutation_unableComments(ctx, field)
+				return ec._Mutation_enableComments(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++

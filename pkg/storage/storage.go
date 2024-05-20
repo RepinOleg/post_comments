@@ -11,7 +11,7 @@ type Storage interface {
 	GetPost(ctx context.Context, id int) (*model.Post, error)
 	CreateComment(ctx context.Context, comment *model.Comment) error
 	DisableComments(ctx context.Context, postID int) (*model.Post, error)
-	UnableComments(ctx context.Context, postID int) (*model.Post, error)
+	EnableComments(ctx context.Context, postID int) (*model.Post, error)
 }
 
 type SubscriptionStorage interface {
