@@ -1,7 +1,4 @@
-# Variables
-BINARY_NAME=post-comments
-
-.PHONY: all build run docker-run
+.PHONY: all run docker-run
 
 all: docker-run run
 
