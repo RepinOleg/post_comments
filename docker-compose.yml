@@ -12,14 +12,5 @@ services:
     volumes:
       - ./assets/postgres/init.sql:/docker-entrypoint-initdb.d/1-schema.sql
       - ./pg_data:/var/lib/postgresql/data
-  app:
-    build: .
-    container_name: post-comments
-    ports:
-      - "8080:8080"
-    depends_on:
-      - postgres
-    environment:
-      DB_PASSWORD: "12345"
 
 
