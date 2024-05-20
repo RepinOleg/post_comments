@@ -9,17 +9,15 @@ import (
 )
 
 type InMemoryStorage struct {
-	posts                []*model.Post
-	comments             []*model.Comment
-	commentAddedChannels map[int][]chan *model.Comment
-	mu                   sync.RWMutex
+	posts    []*model.Post
+	comments []*model.Comment
+	mu       sync.RWMutex
 }
 
 func NewInMemoryStorage() *InMemoryStorage {
 	return &InMemoryStorage{
-		posts:                []*model.Post{},
-		comments:             []*model.Comment{},
-		commentAddedChannels: make(map[int][]chan *model.Comment),
+		posts:    []*model.Post{},
+		comments: []*model.Comment{},
 	}
 }
 
@@ -60,9 +58,6 @@ func (s *InMemoryStorage) CreateComment(ctx context.Context, comment *model.Comm
 			comment.UpdatedAt = time.Now().UTC()
 			post.Comments = append(post.Comments, comment)
 			s.comments = append(s.comments, comment)
-			for _, ch := range s.commentAddedChannels[comment.PostID] {
-				ch <- comment
-			}
 			return nil
 		}
 	}
@@ -75,6 +70,7 @@ func (s *InMemoryStorage) DisableComments(ctx context.Context, postID int) (*mod
 	for _, post := range s.posts {
 		if post.ID == postID {
 			post.CommentsDisabled = true
+			post.UpdatedAt = time.Now().UTC()
 			return post, nil
 		}
 	}
@@ -87,29 +83,9 @@ func (s *InMemoryStorage) UnableComments(ctx context.Context, postID int) (*mode
 	for _, post := range s.posts {
 		if post.ID == postID {
 			post.CommentsDisabled = false
+			post.UpdatedAt = time.Now().UTC()
 			return post, nil
 		}
 	}
 	return nil, errors.New("post not found")
-}
-
-func (s *InMemoryStorage) SubscribeToComments(postID int) (<-chan *model.Comment, error) {
-	commentChannel := make(chan *model.Comment, 1)
-	s.mu.Lock()
-	s.commentAddedChannels[postID] = append(s.commentAddedChannels[postID], commentChannel)
-	s.mu.Unlock()
-	return commentChannel, nil
-}
-
-func (s *InMemoryStorage) UnsubscribeFromComments(postID int, ch <-chan *model.Comment) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	channels := s.commentAddedChannels[postID]
-	for i, c := range channels {
-		if c == ch {
-			s.commentAddedChannels[postID] = append(channels[:i], channels[i+1:]...)
-			close(c)
-			break
-		}
-	}
 }

@@ -3,13 +3,23 @@ package resolver
 import (
 	"context"
 	"errors"
-	"post-comments"
+	"post-comments/pkg/generated"
+	"sync"
 	"unicode/utf8"
 
-	"post-comments/pkg/generated"
+	"post-comments"
 	"post-comments/pkg/model"
 	"post-comments/pkg/storage"
 )
+
+const CommentMaxLen = 2000
+
+var commentAddedChannels map[int][]chan *model.Comment
+var mu sync.Mutex
+
+func init() {
+	commentAddedChannels = make(map[int][]chan *model.Comment)
+}
 
 type Resolver struct {
 	Storage storage.Storage
@@ -18,6 +28,10 @@ type Resolver struct {
 func NewResolver(storage storage.Storage) *Resolver {
 	return &Resolver{Storage: storage}
 }
+
+type mutationResolver struct{ *Resolver }
+type queryResolver struct{ *Resolver }
+type subscriptionResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreatePost(ctx context.Context, input post_comments.NewPost) (*model.Post, error) {
 	post := &model.Post{
@@ -31,8 +45,6 @@ func (r *mutationResolver) CreatePost(ctx context.Context, input post_comments.N
 	}
 	return post, nil
 }
-
-const CommentMaxLen = 2000
 
 func (r *mutationResolver) CreateComment(ctx context.Context, input post_comments.NewComment) (*model.Comment, error) {
 	if utf8.RuneCountInString(input.Body) > CommentMaxLen {
@@ -48,6 +60,9 @@ func (r *mutationResolver) CreateComment(ctx context.Context, input post_comment
 	if err != nil {
 		return nil, err
 	}
+
+	// notify subscribers
+	r.notifyCommentAdded(comment.PostID, comment)
 	return comment, nil
 }
 
@@ -77,22 +92,45 @@ func (r *queryResolver) Post(ctx context.Context, id int) (*model.Post, error) {
 
 // CommentAdded is the resolver for the commentAdded field.
 func (r *subscriptionResolver) CommentAdded(ctx context.Context, postID int) (<-chan *model.Comment, error) {
-	subscriptionStorage, ok := r.Storage.(storage.SubscriptionStorage)
-	if !ok {
-		return nil, errors.New("subscription not supported by current storage")
-	}
+	commentChannel := make(chan *model.Comment, 1)
 
-	commentChannel, err := subscriptionStorage.SubscribeToComments(postID)
-	if err != nil {
-		return nil, err
-	}
+	mu.Lock()
+	commentAddedChannels[postID] = append(commentAddedChannels[postID], commentChannel)
+	mu.Unlock()
 
 	go func() {
 		<-ctx.Done()
-		subscriptionStorage.UnsubscribeFromComments(postID, commentChannel)
+		r.unsubscribeFromComments(postID, commentChannel)
 	}()
 
 	return commentChannel, nil
+}
+
+func (r *subscriptionResolver) unsubscribeFromComments(postID int, ch chan *model.Comment) {
+	mu.Lock()
+	defer mu.Unlock()
+	channels := commentAddedChannels[postID]
+	for i, c := range channels {
+		if c == ch {
+			commentAddedChannels[postID] = append(channels[:i], channels[i+1:]...)
+			close(c)
+			break
+		}
+	}
+}
+
+func (r *Resolver) notifyCommentAdded(postID int, comment *model.Comment) {
+	mu.Lock()
+	channels := commentAddedChannels[postID]
+	mu.Unlock()
+
+	for _, ch := range channels {
+		select {
+		case ch <- comment:
+		default:
+			// If sending fails, it means the receiver is not listening anymore.
+		}
+	}
 }
 
 // Mutation returns generated.MutationResolver implementation.
@@ -103,7 +141,3 @@ func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
 // Subscription returns generated.SubscriptionResolver implementation.
 func (r *Resolver) Subscription() generated.SubscriptionResolver { return &subscriptionResolver{r} }
-
-type mutationResolver struct{ *Resolver }
-type queryResolver struct{ *Resolver }
-type subscriptionResolver struct{ *Resolver }
