@@ -13,8 +13,3 @@ type Storage interface {
 	DisableComments(ctx context.Context, postID int) (*model.Post, error)
 	EnableComments(ctx context.Context, postID int) (*model.Post, error)
 }
-
-type SubscriptionStorage interface {
-	SubscribeToComments(postID int) (<-chan *model.Comment, error)
-	UnsubscribeFromComments(postID int, ch <-chan *model.Comment)
-}

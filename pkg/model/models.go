@@ -29,7 +29,7 @@ type Post struct {
 
 func MarshalID(id int) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
-		io.WriteString(w, strconv.Quote(fmt.Sprintf("%d", id)))
+		_, _ = io.WriteString(w, strconv.Quote(fmt.Sprintf("%d", id)))
 	})
 }
 
@@ -38,15 +38,14 @@ func UnmarshalID(v interface{}) (int, error) {
 	if !ok {
 		return 0, fmt.Errorf("ids must be strings")
 	}
-	i, e := strconv.Atoi(id)
-	return int(i), e
+	return strconv.Atoi(id)
 }
 
 func MarshalTimestamp(t time.Time) graphql.Marshaler {
 	timestamp := t.Unix() * 1000
 
 	return graphql.WriterFunc(func(w io.Writer) {
-		io.WriteString(w, strconv.FormatInt(timestamp, 10))
+		_, _ = io.WriteString(w, strconv.FormatInt(timestamp, 10))
 	})
 }
 
