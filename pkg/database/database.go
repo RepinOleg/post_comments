@@ -31,7 +31,7 @@ func LoadDBConfig() DBConfig {
 func NewDB(cfg DBConfig) (*sqlx.DB, error) {
 	dataSource := fmt.Sprintf("user=%s password=%s host=%s port=%d dbname=%s sslmode=%s",
 		cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DB, cfg.SSLMode)
-	fmt.Println(dataSource)
+
 	connect, err := sqlx.Connect("postgres", dataSource)
 	if err != nil {
 		return nil, err

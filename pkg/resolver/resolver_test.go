@@ -107,10 +107,8 @@ func TestCreateCommentLongBody(t *testing.T) {
 
 	var builder strings.Builder
 
-	// Зарезервируем память заранее для эффективности
 	builder.Grow(2001)
 
-	// Заполните строитель необходимым количеством символов
 	for i := 0; i < 2001; i++ {
 		builder.WriteByte('a')
 	}

@@ -25,6 +25,7 @@ func main() {
 	if err := initConfig(); err != nil {
 		log.Fatalf("error initializing config: %s", err.Error())
 	}
+
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("error loading env variables: %s", err.Error())
 	}
